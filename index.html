@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Bet Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        pitch: {
+                            DEFAULT: '#0f172a',
+                            card: '#1e293b',
+                            border: '#334155',
+                            accent: '#10b981',
+                            accentHover: '#059669',
+                            danger: '#ef4444',
+                            warning: '#f59e0b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1120;
+            color: #f8fafc;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-30 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-emerald-500/20 p-2.5 rounded-xl border border-emerald-500/30 text-emerald-400">
+                    <i class="fa-solid fa-futbol text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        PitchSide <span class="text-emerald-400 font-extrabold text-xs uppercase px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">Tracker</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Football Betting Analytics & Performance Log</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button id="resetSampleBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium px-3 py-2 rounded-lg border border-slate-700 transition flex items-center gap-1.5" title="Reset to Sample Data">
+                    <i class="fa-solid fa-rotate-left text-slate-400"></i>
+                    <span class="hidden sm:inline">Reset Sample Data</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full space-y-8">
+
+        <!-- 1. Metrics & Stats Dashboard -->
+        <section class="grid grid-cols-2 lg:grid-cols-6 gap-4">
+            
+            <!-- Profit / Loss Card -->
+            <div class="col-span-2 sm:col-span-2 lg:col-span-2 bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Overall Profit / Loss</span>
+                        <h2 id="metricPnl" class="text-3xl sm:text-4xl font-extrabold mt-1 text-white">£0.00</h2>
+                    </div>
+                    <div id="pnlIconBg" class="p-3 rounded-xl bg-slate-800 text-slate-400 transition-colors">
+                        <i id="pnlIcon" class="fa-solid fa-chart-line text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-800/80 flex justify-between items-center text-xs">
+                    <span class="text-slate-400">Yield / Return on Investment</span>
+                    <span id="metricRoi" class="font-bold text-slate-300">0.0%</span>
+                </div>
+            </div>
+
+            <!-- Total Staked -->
+            <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Staked</span>
+                    <i class="fa-solid fa-coins text-slate-500"></i>
+                </div>
+                <div>
+                    <h3 id="metricStaked" class="text-2xl font-bold text-white mt-2">£0.00</h3>
+                    <p class="text-xs text-slate-500 mt-1">Capital risked</p>
+                </div>
+            </div>
+
+            <!-- Total Returns -->
+            <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Returns</span>
+                    <i class="fa-solid fa-hand-holding-dollar text-slate-500"></i>
+                </div>
+                <div>
+                    <h3 id="metricReturns" class="text-2xl font-bold text-white mt-2">£0.00</h3>
+                    <p class="text-xs text-slate-500 mt-1">Payout received</p>
+                </div>
+            </div>
+
+            <!-- Win Rate -->
+            <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Win Rate</span>
+                    <i class="fa-solid fa-trophy text-slate-500"></i>
+                </div>
+                <div>
+                    <h3 id="metricWinRate" class="text-2xl font-bold text-white mt-2">0%</h3>
+                    <p id="metricWinCount" class="text-xs text-slate-500 mt-1">0 won of 0 settled</p>
+                </div>
+            </div>
+
+            <!-- Total Bets Count -->
+            <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Bets</span>
+                    <i class="fa-solid fa-list-check text-slate-500"></i>
+                </div>
+                <div>
+                    <h3 id="metricTotalBets" class="text-2xl font-bold text-white mt-2">0</h3>
+                    <p id="metricPendingBets" class="text-xs text-amber-400/90 mt-1">0 pending</p>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Main Workspace Grid (Form + List) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+            <!-- 2. Add New Bet Form Sidebar -->
+            <section class="lg:col-span-4 bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-md sticky top-24">
+                <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-800">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-plus-circle text-emerald-400"></i> Log New Bet
+                    </h2>
+                    <span class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">GBP (£)</span>
+                </div>
+
+                <form id="betForm" class="space-y-4">
+                    <!-- Match / Selection Input -->
+                    <div>
+                        <label for="matchDescription" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                            Match & Selection <span class="text-emerald-400">*</span>
+                        </label>
+                        <input type="text" id="matchDescription" placeholder="e.g. Arsenal vs Chelsea - BTTS" required
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+                    </div>
+
+                    <!-- Odds and Stake Group -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="oddsInput" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                                Odds (Decimal) <span class="text-emerald-400">*</span>
+                            </label>
+                            <input type="number" id="oddsInput" step="0.01" min="1.01" placeholder="e.g. 2.50" required
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+                        </div>
+
+                        <div>
+                            <label for="stakeInput" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                                Stake (£) <span class="text-emerald-400">*</span>
+                            </label>
+                            <input type="number" id="stakeInput" step="0.50" min="0.10" placeholder="e.g. 10.00" required
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+                        </div>
+                    </div>
+
+                    <!-- Auto Calculated Return Box -->
+                    <div class="bg-slate-950/70 rounded-xl p-3.5 border border-slate-800/80 flex items-center justify-between">
+                        <span class="text-xs text-slate-400 font-medium">Potential Return:</span>
+                        <span id="potentialReturnDisplay" class="text-base font-bold text-emerald-400">£0.00</span>
+                    </div>
+
+                    <!-- Initial Status Selector -->
+                    <div>
+                        <label for="statusSelect" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                            Status
+                        </label>
+                        <select id="statusSelect"
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+                            <option value="pending" selected>⏳ Pending</option>
+                            <option value="won">✅ Won</option>
+                            <option value="lost">❌ Lost</option>
+                            <option value="void">⚪ Void / Cashed Out</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom Notes / Bookie Optional Input -->
+                    <div>
+                        <label for="bookieInput" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                            Bookmaker / Competition (Optional)
+                        </label>
+                        <input type="text" id="bookieInput" placeholder="e.g. Bet365 / Premier League"
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                        class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-500/10 transition duration-200 flex items-center justify-center gap-2 mt-2">
+                        <i class="fa-solid fa-plus"></i> Save Bet
+                    </button>
+                </form>
+            </section>
+
+            <!-- 3. Bet Log List & Filters -->
+            <section class="lg:col-span-8 bg-slate-900 rounded-2xl border border-slate-800 shadow-md overflow-hidden">
+                
+                <!-- Table Header & Filter Bar -->
+                <div class="p-5 border-b border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900">
+                    <div class="flex items-center space-x-2">
+                        <h2 class="text-lg font-bold text-white">Bet Log</h2>
+                        <span id="filteredCount" class="bg-slate-800 text-slate-400 text-xs px-2.5 py-0.5 rounded-full font-medium">0 bets</span>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 self-stretch sm:self-auto justify-between sm:justify-start">
+                        <button class="filter-btn active text-xs font-semibold px-3 py-1.5 rounded-lg text-white bg-slate-800 transition" data-filter="all">All</button>
+                        <button class="filter-btn text-xs font-semibold px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition" data-filter="pending">Pending</button>
+                        <button class="filter-btn text-xs font-semibold px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition" data-filter="won">Won</button>
+                        <button class="filter-btn text-xs font-semibold px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition" data-filter="lost">Lost</button>
+                        <button class="filter-btn text-xs font-semibold px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition" data-filter="void">Void</button>
+                    </div>
+                </div>
+
+                <!-- Bets List Container -->
+                <div id="betsContainer" class="divide-y divide-slate-800/80">
+                    <!-- Dynamic Bets will be rendered here -->
+                </div>
+
+                <!-- Empty State Display -->
+                <div id="emptyState" class="hidden p-12 text-center">
+                    <div class="w-16 h-16 bg-slate-800/60 rounded-full flex items-center justify-center mx-auto text-slate-500 mb-4">
+                        <i class="fa-solid fa-receipt text-2xl"></i>
+                    </div>
+                    <h3 class="text-slate-300 font-semibold text-base">No bets found</h3>
+                    <p class="text-slate-500 text-xs mt-1 max-w-sm mx-auto">There are no bets matching your selected filter. Log a new football bet using the form to start tracking your performance.</p>
+                </div>
+
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Custom Modal Notification Box (Replaces Browser Alert) -->
+    <div id="customModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 m-4 shadow-2xl transform scale-95 transition-transform duration-200">
+            <div id="modalIcon" class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl mb-4">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 id="modalTitle" class="text-lg font-bold text-white mb-2">Notification</h3>
+            <p id="modalMessage" class="text-sm text-slate-400 mb-6">Action completed successfully.</p>
+            <div class="flex justify-end gap-3">
+                <button id="modalCancelBtn" class="hidden px-4 py-2 text-xs font-semibold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Cancel</button>
+                <button id="modalConfirmBtn" class="px-5 py-2 text-xs font-semibold rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 transition">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic Script -->
+    <script>
+        // Sample initial dataset to demonstrate features immediately
+        const INITIAL_SAMPLE_BETS = [
+            {
+                id: 'sample-1',
+                description: 'Arsenal vs Chelsea - Both Teams To Score',
+                odds: 1.85,
+                stake: 20.00,
+                status: 'won',
+                bookie: 'Premier League',
+                date: new Date(Date.now() - 86400000 * 2).toISOString()
+            },
+            {
+                id: 'sample-2',
+                description: 'Man City to win & Over 2.5 Goals vs Liverpool',
+                odds: 2.60,
+                stake: 15.00,
+                status: 'lost',
+                bookie: 'Bet365',
+                date: new Date(Date.now() - 86400000 * 1).toISOString()
+            },
+            {
+                id: 'sample-3',
+                description: 'Real Madrid vs Barcelona - Jude Bellingham to Score',
+                odds: 3.20,
+                stake: 10.00,
+                status: 'pending',
+                bookie: 'La Liga',
+                date: new Date().toISOString()
+            },
+            {
+                id: 'sample-4',
+                description: 'Bayern Munich - Handi-cap (-1.5) vs Dortmund',
+                odds: 2.10,
+                stake: 25.00,
+                status: 'won',
+                bookie: 'Bundesliga',
+                date: new Date(Date.now() - 86400000 * 3).toISOString()
+            }
+        ];
+
+        // State Management
+        let bets = [];
+        let currentFilter = 'all';
+
+        // DOM Elements
+        const betForm = document.getElementById('betForm');
+        const matchDescription = document.getElementById('matchDescription');
+        const oddsInput = document.getElementById('oddsInput');
+        const stakeInput = document.getElementById('stakeInput');
+        const potentialReturnDisplay = document.getElementById('potentialReturnDisplay');
+        const statusSelect = document.getElementById('statusSelect');
+        const bookieInput = document.getElementById('bookieInput');
+        const betsContainer = document.getElementById('betsContainer');
+        const emptyState = document.getElementById('emptyState');
+        const filteredCount = document.getElementById('filteredCount');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const resetSampleBtn = document.getElementById('resetSampleBtn');
+
+        // Metrics DOM
+        const metricPnl = document.getElementById('metricPnl');
+        const metricRoi = document.getElementById('metricRoi');
+        const metricStaked = document.getElementById('metricStaked');
+        const metricReturns = document.getElementById('metricReturns');
+        const metricWinRate = document.getElementById('metricWinRate');
+        const metricWinCount = document.getElementById('metricWinCount');
+        const metricTotalBets = document.getElementById('metricTotalBets');
+        const metricPendingBets = document.getElementById('metricPendingBets');
+        const pnlIconBg = document.getElementById('pnlIconBg');
+        const pnlIcon = document.getElementById('pnlIcon');
+
+        // Modal DOM
+        const customModal = document.getElementById('customModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            loadBets();
+            setupEventListeners();
+            updatePotentialReturn();
+        });
+
+        // Event Listeners setup
+        function setupEventListeners() {
+            // Live calculation of potential return
+            oddsInput.addEventListener('input', updatePotentialReturn);
+            stakeInput.addEventListener('input', updatePotentialReturn);
+
+            // Form Submit
+            betForm.addEventListener('submit', handleAddBet);
+
+            // Filter Tabs
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    filterBtns.forEach(b => {
+                        b.classList.remove('active', 'bg-slate-800', 'text-white');
+                        b.classList.add('text-slate-400');
+                    });
+                    btn.classList.add('active', 'bg-slate-800', 'text-white');
+                    btn.classList.remove('text-slate-400');
+
+                    currentFilter = btn.dataset.filter;
+                    renderBets();
+                });
+            });
+
+            // Reset Sample Data Button
+            resetSampleBtn.addEventListener('click', () => {
+                showModal({
+                    title: 'Reset to Sample Data?',
+                    message: 'This will replace your current logs with initial demo bets. Are you sure?',
+                    iconClass: 'fa-rotate-left text-amber-400',
+                    iconBg: 'bg-amber-500/20',
+                    showCancel: true,
+                    onConfirm: () => {
+                        bets = [...INITIAL_SAMPLE_BETS];
+                        saveBets();
+                        renderBets();
+                        updateMetrics();
+                    }
+                });
+            });
+        }
+
+        // Live Calculate Potential Returns
+        function updatePotentialReturn() {
+            const odds = parseFloat(oddsInput.value) || 0;
+            const stake = parseFloat(stakeInput.value) || 0;
+            const potentialReturn = odds * stake;
+            potentialReturnDisplay.textContent = formatCurrency(potentialReturn);
+        }
+
+        // Format Currency Helper
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-GB', {
+                style: 'currency',
+                currency: 'GBP'
+            }).format(amount);
+        }
+
+        // Add New Bet
+        function handleAddBet(e) {
+            e.preventDefault();
+
+            const description = matchDescription.value.trim();
+            const odds = parseFloat(oddsInput.value);
+            const stake = parseFloat(stakeInput.value);
+            const status = statusSelect.value;
+            const bookie = bookieInput.value.trim();
+
+            if (!description || isNaN(odds) || isNaN(stake)) {
+                showModal({
+                    title: 'Invalid Input',
+                    message: 'Please fill in all required fields with valid values.',
+                    iconClass: 'fa-triangle-exclamation text-rose-400',
+                    iconBg: 'bg-rose-500/20'
+                });
+                return;
+            }
+
+            const newBet = {
+                id: 'bet_' + Date.now(),
+                description,
+                odds,
+                stake,
+                status,
+                bookie: bookie || 'Football',
+                date: new Date().toISOString()
+            };
+
+            bets.unshift(newBet);
+            saveBets();
+            renderBets();
+            updateMetrics();
+
+            // Reset Form
+            betForm.reset();
+            updatePotentialReturn();
+
+            // Success feedback
+            showModal({
+                title: 'Bet Logged!',
+                message: `Successfully logged bet: "${description}"`,
+                iconClass: 'fa-check text-emerald-400',
+                iconBg: 'bg-emerald-500/20'
+            });
+        }
+
+        // Quick Toggle Bet Status
+        function updateBetStatus(id, newStatus) {
+            const betIndex = bets.findIndex(b => b.id === id);
+            if (betIndex !== -1) {
+                bets[betIndex].status = newStatus;
+                saveBets();
+                renderBets();
+                updateMetrics();
+            }
+        }
+
+        // Delete Bet
+        function deleteBet(id) {
+            const bet = bets.find(b => b.id === id);
+            showModal({
+                title: 'Delete Bet',
+                message: `Are you sure you want to remove "${bet ? bet.description : 'this bet'}"?`,
+                iconClass: 'fa-trash-can text-rose-400',
+                iconBg: 'bg-rose-500/20',
+                showCancel: true,
+                onConfirm: () => {
+                    bets = bets.filter(b => b.id !== id);
+                    saveBets();
+                    renderBets();
+                    updateMetrics();
+                }
+            });
+        }
+
+        // Storage Operations
+        function saveBets() {
+            localStorage.setItem('pitchside_football_bets', JSON.stringify(bets));
+        }
+
+        function loadBets() {
+            const saved = localStorage.getItem('pitchside_football_bets');
+            if (saved) {
+                try {
+                    bets = JSON.parse(saved);
+                } catch (err) {
+                    console.error('Failed to parse saved bets', err);
+                    bets = [...INITIAL_SAMPLE_BETS];
+                }
+            } else {
+                bets = [...INITIAL_SAMPLE_BETS];
+            }
+            renderBets();
+            updateMetrics();
+        }
+
+        // Update Dashboard Analytics Metrics
+        function updateMetrics() {
+            const totalBets = bets.length;
+            const totalStaked = bets.reduce((sum, b) => sum + b.stake, 0);
+
+            let totalReturns = 0;
+            let wonCount = 0;
+            let lostCount = 0;
+            let pendingCount = 0;
+            let settledCount = 0;
+
+            bets.forEach(b => {
+                if (b.status === 'won') {
+                    totalReturns += (b.stake * b.odds);
+                    wonCount++;
+                    settledCount++;
+                } else if (b.status === 'lost') {
+                    totalReturns += 0;
+                    lostCount++;
+                    settledCount++;
+                } else if (b.status === 'void') {
+                    totalReturns += b.stake; // Stake refunded
+                    settledCount++;
+                } else {
+                    pendingCount++;
+                }
+            });
+
+            const overallPnl = totalReturns - (settledCount > 0 ? bets.filter(b => b.status !== 'pending').reduce((sum, b) => sum + b.stake, 0) : 0);
+            
+            // Calculating ROI based on settled bets
+            const settledStaked = bets.filter(b => b.status !== 'pending').reduce((sum, b) => sum + b.stake, 0);
+            const roi = settledStaked > 0 ? (overallPnl / settledStaked) * 100 : 0;
+            const winRate = settledCount > 0 ? ((wonCount / (wonCount + lostCount)) * 100) || 0 : 0;
+
+            // Render Values
+            metricPnl.textContent = (overallPnl >= 0 ? '+' : '') + formatCurrency(overallPnl);
+            metricRoi.textContent = `${roi >= 0 ? '+' : ''}${roi.toFixed(1)}% ROI`;
+            metricStaked.textContent = formatCurrency(totalStaked);
+            metricReturns.textContent = formatCurrency(totalReturns);
+            metricWinRate.textContent = `${Math.round(winRate)}%`;
+            metricWinCount.textContent = `${wonCount} won of ${wonCount + lostCount} settled`;
+            metricTotalBets.textContent = totalBets;
+            metricPendingBets.textContent = `${pendingCount} pending`;
+
+            // Style Profit/Loss
+            if (overallPnl > 0) {
+                metricPnl.className = "text-3xl sm:text-4xl font-extrabold mt-1 text-emerald-400";
+                metricRoi.className = "font-bold text-emerald-400";
+                pnlIconBg.className = "p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400";
+                pnlIcon.className = "fa-solid fa-arrow-trend-up text-xl";
+            } else if (overallPnl < 0) {
+                metricPnl.className = "text-3xl sm:text-4xl font-extrabold mt-1 text-rose-500";
+                metricRoi.className = "font-bold text-rose-400";
+                pnlIconBg.className = "p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400";
+                pnlIcon.className = "fa-solid fa-arrow-trend-down text-xl";
+            } else {
+                metricPnl.className = "text-3xl sm:text-4xl font-extrabold mt-1 text-white";
+                metricRoi.className = "font-bold text-slate-400";
+                pnlIconBg.className = "p-3 rounded-xl bg-slate-800 text-slate-400";
+                pnlIcon.className = "fa-solid fa-minus text-xl";
+            }
+        }
+
+        // Render Bet Log List Cards
+        function renderBets() {
+            betsContainer.innerHTML = '';
+
+            const filteredBets = bets.filter(b => {
+                if (currentFilter === 'all') return true;
+                if (currentFilter === 'pending') return b.status === 'pending';
+                if (currentFilter === 'won') return b.status === 'won';
+                if (currentFilter === 'lost') return b.status === 'lost';
+                if (currentFilter === 'void') return b.status === 'void';
+                return true;
+            });
+
+            filteredCount.textContent = `${filteredBets.length} ${filteredBets.length === 1 ? 'bet' : 'bets'}`;
+
+            if (filteredBets.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+
+                filteredBets.forEach(bet => {
+                    const potentialReturn = bet.odds * bet.stake;
+                    let actualReturn = 0;
+
+                    if (bet.status === 'won') actualReturn = potentialReturn;
+                    else if (bet.status === 'void') actualReturn = bet.stake;
+
+                    const betCard = document.createElement('div');
+                    betCard.className = "p-4 sm:p-5 hover:bg-slate-850/50 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4";
+
+                    // Status Badge Config
+                    let statusBadgeHTML = '';
+                    if (bet.status === 'won') {
+                        statusBadgeHTML = `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Won</span>`;
+                    } else if (bet.status === 'lost') {
+                        statusBadgeHTML = `<span class="bg-rose-500/10 text-rose-400 border border-rose-500/20 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5"><i class="fa-solid fa-circle-xmark"></i> Lost</span>`;
+                    } else if (bet.status === 'void') {
+                        statusBadgeHTML = `<span class="bg-slate-700/50 text-slate-300 border border-slate-600/30 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5"><i class="fa-solid fa-ban"></i> Void</span>`;
+                    } else {
+                        statusBadgeHTML = `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5"><i class="fa-solid fa-clock"></i> Pending</span>`;
+                    }
+
+                    const dateFormatted = new Date(bet.date).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'short'
+                    });
+
+                    betCard.innerHTML = `
+                        <!-- Left Details -->
+                        <div class="flex-grow space-y-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                ${statusBadgeHTML}
+                                <span class="text-xs font-medium text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${escapeHtml(bet.bookie)}</span>
+                                <span class="text-xs text-slate-500">${dateFormatted}</span>
+                            </div>
+                            <h4 class="text-base font-semibold text-white mt-1">${escapeHtml(bet.description)}</h4>
+                            <div class="flex items-center gap-4 text-xs text-slate-400 pt-1">
+                                <span>Odds: <strong class="text-slate-200">${bet.odds.toFixed(2)}</strong></span>
+                                <span>Stake: <strong class="text-slate-200">${formatCurrency(bet.stake)}</strong></span>
+                                <span>Pot. Return: <strong class="text-emerald-400">${formatCurrency(potentialReturn)}</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Right Quick Toggles & Action -->
+                        <div class="flex items-center justify-between sm:justify-end gap-3 pt-3 sm:pt-0 border-t sm:border-0 border-slate-800">
+                            
+                            <!-- Quick Status Buttons -->
+                            <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+                                <button onclick="updateBetStatus('${bet.id}', 'won')" 
+                                    title="Mark as Won"
+                                    class="px-2.5 py-1 text-xs font-semibold rounded-lg transition ${bet.status === 'won' ? 'bg-emerald-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-emerald-400'}">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                                <button onclick="updateBetStatus('${bet.id}', 'lost')" 
+                                    title="Mark as Lost"
+                                    class="px-2.5 py-1 text-xs font-semibold rounded-lg transition ${bet.status === 'lost' ? 'bg-rose-500 text-white font-bold shadow' : 'text-slate-400 hover:text-rose-400'}">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                                <button onclick="updateBetStatus('${bet.id}', 'pending')" 
+                                    title="Mark as Pending"
+                                    class="px-2.5 py-1 text-xs font-semibold rounded-lg transition ${bet.status === 'pending' ? 'bg-amber-500 text-slate-950 font-bold shadow' : 'text-slate-400 hover:text-amber-400'}">
+                                    <i class="fa-solid fa-clock"></i>
+                                </button>
+                                <button onclick="updateBetStatus('${bet.id}', 'void')" 
+                                    title="Mark as Void/Cashed Out"
+                                    class="px-2.5 py-1 text-xs font-semibold rounded-lg transition ${bet.status === 'void' ? 'bg-slate-600 text-white font-bold shadow' : 'text-slate-400 hover:text-slate-200'}">
+                                    <i class="fa-solid fa-ban"></i>
+                                </button>
+                            </div>
+
+                            <!-- Delete Button -->
+                            <button onclick="deleteBet('${bet.id}')" 
+                                class="text-slate-500 hover:text-rose-400 p-2 rounded-lg hover:bg-slate-800 transition"
+                                title="Delete Log">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                        </div>
+                    `;
+
+                    betsContainer.appendChild(betCard);
+                });
+            }
+        }
+
+        // Custom Modal UI Handler (replaces default browser alert)
+        function showModal({ title, message, iconClass = 'fa-check text-emerald-400', iconBg = 'bg-emerald-500/20', showCancel = false, onConfirm = null }) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalIcon.className = `w-12 h-12 rounded-full ${iconBg} flex items-center justify-center text-xl mb-4`;
+            modalIcon.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+
+            if (showCancel) {
+                modalCancelBtn.classList.remove('hidden');
+            } else {
+                modalCancelBtn.classList.add('hidden');
+            }
+
+            customModal.classList.remove('hidden');
+            setTimeout(() => {
+                customModal.classList.remove('opacity-0');
+                customModal.querySelector('div').classList.remove('scale-95');
+            }, 10);
+
+            const handleConfirm = () => {
+                closeModal();
+                if (onConfirm) onConfirm();
+                cleanup();
+            };
+
+            const handleCancel = () => {
+                closeModal();
+                cleanup();
+            };
+
+            const cleanup = () => {
+                modalConfirmBtn.removeEventListener('click', handleConfirm);
+                modalCancelBtn.removeEventListener('click', handleCancel);
+            };
+
+            modalConfirmBtn.addEventListener('click', handleConfirm);
+            modalCancelBtn.addEventListener('click', handleCancel);
+        }
+
+        function closeModal() {
+            customModal.classList.add('opacity-0');
+            customModal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                customModal.classList.add('hidden');
+            }, 200);
+        }
+
+        // Helper to prevent HTML Injection
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+    </script>
+</body>
+</html>
